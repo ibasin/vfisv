@@ -19,6 +19,7 @@ sqlite3/
 /.vs/FancyShmanCSharp.slnx/v18/DocumentLayout.backup.json
 /.vs/FancyShmanCSharp.slnx/v18/DocumentLayout.json
 /.vs/FancyShmanCSharp/CopilotIndices/
-*.fits
 /.vs/Vfisv/v18/DocumentLayout.json
 /.vs/Vfisv/v18/DocumentLayout.backup.json
+output/
+observation/
