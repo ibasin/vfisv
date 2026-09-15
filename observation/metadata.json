@@ -1,0 +1,15 @@
+{
+  "recordTime": "2012.02.15_15:24:00_TAI",
+  "width": 4096,
+  "height": 4096,
+  "observerRadialVelocity": -2151.674911,
+  "referencePixelX": 2038.439087,
+  "referencePixelY": 2047.305664,
+  "pixelScaleX": 0.504294,
+  "pixelScaleY": 0.504294,
+  "solarRadiusMeters": 696000000,
+  "observerDistanceMeters": 147741054102.04,
+  "rotationDegrees": 180.013443,
+  "cameraId": 2,
+  "camera": 1
+}

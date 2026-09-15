@@ -1,0 +1,80 @@
+HMI Camera Identifications
+
+There are two well defined ways to identify the HMI cameras.
+
+First, in the documents used during development of HMI:
+
+ *  The "front" camera, the one next to the telescope 
+    on the sunward facing part of HMI, was called Camera 2.
+
+ *  The "side" camera, the one on the long side of HMI
+    is called Camera 1.
+
+For keywords used in higher level products, lev1 and above we have adopted
+the values for CAMERA:
+    1 == Side camera
+    2 == Front Camera
+
+In low level data, tlm, lev0, and lev1 the keyword from the housekeeping
+data called HCAMID is used.  This keyword uses the lower two bits
+to indicate camera and shutter position, the first, least significant bit, 
+is used for camera selection with 0 == side, and 1 == front.  
+The second bit is used to indicate a dark image or one with the shutter open.  
+In this case 0 means dark, and 1 means shutter open.  Thus for a solar
+filtergram (vs a dark one) we get for HCAMID
+    2 == Side camera, shutter open
+    3 == Front camera, shutter open.
+
+The above meanings of HCAMID and CAMERA are used consistently in DRMS and FITS headers.
+
+
+Sources of confusion when viewing the code:
+
+When we started using both cameras for vector field products using
+the "mod-L" framelist we define:
+    3 == Both cameras in the CAMERA keyword used for above lev1 products.
+
+
+The code, HMI_observables.c, used to get from lev1 to lev1.5 (aka 
+'observables') uses a command line parameter "camid" that uses an 
+otherwise not used convention mixing HCAMID and CAMERA that is
+  camid == 0  for side camera
+  camid == 1  for front camera
+  camid == 3  for both cameras
+
+This parameter is read into the variable "CamId" which is initialized
+as the lower bit of HCAMID, 0 == side, 1 == front.
+
+And in the code HMI_observables.c used the variable 'camera' to
+have the same values as the CAMERA keyword.
+
+It uses the variable "CamId" internally to hold the information about cameras.
+It starts with the command line 'camid' then changes it to HCAMID values.
+
+#define LIGHT_SIDE  2                 //SIDE CAMERA
+#define LIGHT_FRONT 3                 //FRONT CAMERA
+
+It further confuses the meaning by changing the meanings in the code.
+
+E.g. in order of the code:
+#define CamIDIn        "camid"        //front camera (camid=1), side camera (camid=0), or both cameras camid=3)?
+
+  int CamId = cmdparams_get_int(&cmdparams,CamIDIn,         NULL);      //front (1) or side (0) camera?
+
+  int CamId0=CamId;
+  if(CamId == 0)
+    {CamId = LIGHT_SIDE;}
+  else
+    {if(CamId == 1)
+      {CamId = LIGHT_FRONT;}
+    else if(CamId == 3) CamId = LIGHT_SIDE; //when we combine the camera, it's a mod L so we assume it's mainly from the side camera
+    }
+Thus the 'first bit only of HCAMID initial CamId is changed to both bits.  2 == side, 3 == front.
+with the initial value saved in CamId0.  In the rest of the code the redefinition of CamId seems
+to be consistently used, where it is only LIGHT_SIDE or FRONT_SIDE and the combined information
+is carried forward in 'CamId0' and 'camera', both of which == 3 for both cameras in use.
+
+HMI_IQUV_averaging.c uses the same 'camid' command line param as HMI_observables but only expects 0 or 1.
+It deduces the mode of one or two cameras via the framelist information in the file ../Sequences3.txt
+relative to the "Development" path of the source code, /home/jsoc/cvs/Development/JSOC/proj/lev1.5_hmi/apps.
+

@@ -1,0 +1,63 @@
+NB: UPDATED ON MAY 24, 2013
+
+Here is the current meaning of the HMI QUALITY keyword for processing level 1.5.
+
+
+//NO Line-of-Sight OBSERVABLES PRODUCED AND THE REASON WHY, QUALITY < 0
+
+QUAL_NODATA                  (0x80000000)  //no l.o.s. observables image was produced (empty record created, with NO DATA SEGMENT. Most keywords have default value)
+QUAL_TARGETFILTERGRAMMISSING (0x40000000)  //no target filtergram was found near target time (target filtergram=filtergram used to identify the framelist): due either to missing filtergrams or because no observable sequence was run
+QUAL_NOINTERPOLATEDKEYWORDS  (0x20000000)  //could not interpolate some keywords at target time (CROTA2, DSUN_OBS, and CRLT_OBS are required by do_interpolate()), because several lev 1 records are missing/corrupted
+QUAL_NOFRAMELISTINFO         (0x10000000)  //could not figure out which observables framelist was used, or the framelist run for the required time range is not an observables framelist
+QUAL_WRONGCADENCE            (0x08000000)  //the cadence corresponding to the framelist run at the required time does not match the expected value provided by user (error from user, or issue with the framelist)
+QUAL_WRONGTARGET             (0x04000000)  //the target filtergram does not belong to the current framelist (something is wrong either with the framelist or the target filtergram)
+QUAL_MISSINGLEV1D            (0x02000000)  //not enough lev1d filtergrams to produce an observable (too many lev 1 records were missing or corrupted)
+QUAL_MISSINGKEYWORDLEV1D     (0x01000000)  //could not read some needed keywords (like FID) in the lev1d data (too many lev 1 records were missing or corrupted and the corresponding lev 1d record is unusable)
+QUAL_WRONGWAVELENGTHNUM      (0x00800000)  //the number of wavelengths in the lev1d records is not correct (issue with the framelist, or too many lev 1 records were missing or corrupted)
+QUAL_MISSINGKEYWORDLEV1P     (0x00400000)  //could not read some needed keywords in the lev1p data (too many lev 1 records were missing or corrupted and the corresponding lev 1p record is unusable)
+QUAL_NOLOOKUPRECORD          (0x00200000)  //could not find a record for the look-up tables for the MDI-like algorithm (the MDI-like algorithm could not be applied)
+QUAL_NOLOOKUPKEYWORD         (0x00100000)  //could not read the keywords of the look-up tables for the MDI-like algorithm (the MDI-like algorithm could not be applied)
+QUAL_NOTENOUGHINTERPOLANTS   (0x00080000)  //not enough interpolation points for the temporal interpolation at a given wavelength and polarization (too many lev 1 records were missing or corrupted)
+QUAL_INTERPOLATIONFAILED     (0x00040000)  //the temporal interpolation routine failed (no lev1d record was produced)
+QUAL_MISSINGLEV1P            (0x00020000)  //not enough lev1p records to produce an observable (too many lev 1 records were missing or corrupted)
+QUAL_NOCOEFFKEYWORD          (0x00000200)  //could not read the keywords of the polynomial coefficient series for the correction of the MDI-like algorithm
+QUAL_NOCOEFFPRECORD          (0x00000080)  //could not find a record for the polynomial coefficient for the correction of the MDI-like algorithm, or could not access the keywords of a specific record
+
+
+//SOME (OR ALL) IQUV and derived product DATA SEGMENTS WERE NOT PRODUCED AND //THE REASON WHY (any cadence)
+
+QUAL_NODATA                  (0x80000000)  //not all the IQUV images were produced (SOME OR ALL DATA SEGMENTS ARE MISSING)
+QUAL_TARGETFILTERGRAMMISSING (0x40000000)  //no target filtergram was found near target time (target filtergram=filtergram used to identify the framelist): due either to missing filtergrams or because no observable sequence was run
+QUAL_NOINTERPOLATEDKEYWORDS  (0x20000000)  //could not interpolate some keywords at target time (CROTA2, DSUN_OBS, and CRLT_OBS are required by do_interpolate()), because several level 1 records are missing/corrupted
+QUAL_NOFRAMELISTINFO         (0x10000000)  //could not figure out which observables framelist was used, or the framelist run for the required dates is not an observables framelist
+QUAL_WRONGCADENCE            (0x08000000)  //the cadence corresponding to the framelist run at required times does not match the expected value provided by user (error from user, or issue with the framelist)
+QUAL_WRONGFRAMELISTSIZE      (0x04000000)  //the current framelist size does not match the value from the command line
+QUAL_WRONGNPOL               (0x02000000)  //the current framelist npol does not match the value from the command line
+QUAL_WRONGPOLTYPE            (0x01000000)  //the current framelist does not allow for the production of I,Q,U, and V data
+QUAL_WRONGTARGET             (0x00800000)  //the target filtergram does not belong to the current framelist (something is wrong either with the framelist or with the target filtergram)
+QUAL_ERRORFRAMELIST          (0x00400000)  //the filtergrams are not where they should be in the framelist (issue with the framelist)
+QUAL_WRONGWAVELENGTHNUM      (0x00200000)  //the number of wavelengths in the lev1d records is not correct (issue with the framelist, or too many lev 1 records were missing or corrupted)
+QUAL_NOLOOKUPRECORD          (0x00100000)  //could not find a record for the look-up tables for the MDI-like algorithm (the MDI-like algorithm could not be used). NB: THIS BIT IS CURRENTLY NOT USED BUT SHOULD BE IN THE NEAR FUTURE
+QUAL_NOLOOKUPKEYWORD         (0x00080000)  //could not read the keywords of the look-up tables for the MDI-like algorithm (the MDI-like algorithm could not be used). NB: THIS BIT IS CURRENTLY NOT USED BUT SHOULD BE IN THE NEAR FUTURE
+QUAL_NOTENOUGHINTERPOLANTS   (0x00040000)  //not enough interpolation points for the temporal interpolation at a given wavelength and polarization (too many lev 1 records were missing or corrupted)
+QUAL_INTERPOLATIONFAILED     (0x00020000)  //the temporal interpolation routine failed
+
+//Line-of-Sight and Vector field data products CREATED BUT IN SUB-OPTIMAL CONDITIONS, QUALITY > 0
+
+QUAL_LOWINTERPNUM            (0x00010000)  //the number of averaging points is lower than TempIntNum, AND/OR 2 interpolation points were separated by more than the cadence
+QUAL_LOWKEYWORDNUM           (0x00008000)  //some keywords (especially CROTA2, DSUN_OBS, and CRLT_OBS) could not be interpolated properly at target time, but a closest-neighbour approximation was used
+QUAL_ISSTARGET               (0x00004000)  //the ISS loop was OPEN for one or several filtergrams used to produce the observable
+QUAL_NOTEMP                  (0x00002000)  //cannot read the temperatures needed for polarization calibration (default temperature used)
+QUAL_NOGAPFILL               (0x00001000)  //the code could not properly gap-fill all the lev 1 filtergrams
+QUAL_LIMBFITISSUE            (0x00000800)  //some lev1 records were discarded because R_SUN, and/or CRPIX1/CRPIX2 were missing or too different from the median value of the other lev 1 records (too much jitter for instance)
+QUAL_NOCOSMICRAY             (0x00000400)  //some cosmic-ray hit lists could not be read for the level 1 filtergrams
+QUAL_ECLIPSE                 (0x00000200)  //at least one lev1 record was taken during an eclipse
+QUAL_LARGEFTSID              (0x00000100)  //HFTSACID of target filtergram > 4000, which adds noise to observables
+QUAL_TEMPERROR               (0x00000080)  //Code error discovered, will be corrected in later versions, see notes at http://jsoc2.stanford.edu/doc/data/hmi/Quality_Bits
+QUAL_POORQUALITY             (0x00000020)  //poor quality: careful when using these observables due to eclipse, or lunar transit, or thermal recovery, or open ISS, or other issues...
+
+//OBSERVABLES CREATED AND QUALITY == 0
+
+None of the above problems were detected in the process of generating the data product.
+
+Bits 0x1F are reserved for future use.

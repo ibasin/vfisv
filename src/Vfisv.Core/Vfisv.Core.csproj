@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Managed C# port of the VFISV Milne-Eddington inversion engine.</Description>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- CSharpFITS predates modern TFMs but its managed assembly runs on .NET 8. -->
+    <PackageReference Include="CSharpFITS" Version="1.1.0" />
+  </ItemGroup>
+</Project>
