@@ -37,8 +37,7 @@ internal static class RiceCodec
                 else
                 {
                     var quotient = bits.ReadUnaryZeros();
-                    if (quotient > (uint.MaxValue >> fs))
-                        throw new InvalidDataException("RICE_1 difference exceeds the supported range.");
+                    if (quotient > uint.MaxValue >> fs) throw new InvalidDataException("RICE_1 difference exceeds the supported range.");
                     mapped = (quotient << fs) | bits.ReadBits(fs);
                 }
 
