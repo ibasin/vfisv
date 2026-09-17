@@ -1,11 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.Reflection.Metadata;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace FitsLib;
 
 public static class FitsProvider
 {
-    public static async Task<FloatImage[]> Get24Images(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
+    public static async Task<FloatImage[]> Load24InputImages(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
     {
         var jsonOptions = new JsonSerializerOptions
         {
@@ -35,7 +36,33 @@ public static class FitsProvider
             metadata = JsonSerializer.Deserialize<HmiObservationMetadata>(await File.ReadAllTextAsync(metadataPath, cancellationToken), jsonOptions) ?? throw new InvalidDataException("Observation metadata is empty.");
         }
 
-        var images = FitsFloatImageReader.ReadFitsImagesInDirectory(inputDir, metadata);
+        var images = FitsFloatImageReaderWriter.ReadFitsImagesInDirectory(inputDir, metadata);
         return images;
+    }
+
+    public static Task Save4OutputImages(string outputDir, string prefix, FloatImage[] images)
+    {
+        if (images.Length != 4) throw new ArgumentException("Expected exactly 4 images.", nameof(images));
+        
+        var inclination = images[0];
+        var azimuth = images[1];
+        var temperature = images[2];
+        var pressure = images[3];
+        
+        Directory.CreateDirectory(outputDir);
+
+        var inclinationPath = Path.Combine(outputDir, $"{prefix}.Inclination.fits");
+        FitsFloatImageReaderWriter.Write(inclinationPath, inclination);
+        
+        var azimuthPath = Path.Combine(outputDir, $"{prefix}.Azimuth.fits");
+        FitsFloatImageReaderWriter.Write(azimuthPath, azimuth);
+
+        var temperaturePath = Path.Combine(outputDir, $"{prefix}.Temperature.fits");
+        FitsFloatImageReaderWriter.Write(temperaturePath, temperature);
+
+        var pressurePath = Path.Combine(outputDir, $"{prefix}.Pressure.fits");
+        FitsFloatImageReaderWriter.Write(pressurePath, pressure);
+
+        return Task.CompletedTask;
     }
 }

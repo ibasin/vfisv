@@ -4,7 +4,7 @@ namespace FitsLib;
 
 // Reads ordinary FITS images and the RICE_1 tile-compressed binary-table images produced by JSOC.CSharpFITS supplies FITS/HDU/table parsing; its 2008-era
 // implementation does not include the tile-compression codecs, so RICE_1 tiles are decoded here.
-public static class FitsFloatImageReader
+public static class FitsFloatImageReaderWriter
 {
     #region Read All Images in input Dir
     public static FloatImage[] ReadFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
@@ -35,10 +35,10 @@ public static class FitsFloatImageReader
     #endregion
 
     #region Read Single Image
-    public static FloatImage Read(string path)
+    public static FloatImage Read(string fullFileName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        var fits = new Fits(path, FileAccess.Read);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fullFileName);
+        var fits = new Fits(fullFileName, FileAccess.Read);
         try
         {
             while (fits.ReadHDU() is { } hdu)
@@ -159,7 +159,7 @@ public static class FitsFloatImageReader
     #endregion
 
     #region Write Single Image
-    public static void Write(string path, FloatImage image)
+    public static void Write(string fullFileName, FloatImage image)
     {
 
     }
