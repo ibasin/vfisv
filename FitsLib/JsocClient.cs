@@ -58,10 +58,13 @@ public sealed class JsocClient(HttpClient httpClient)
 
         foreach (var (name, uri) in observation.Segments)
         {
+            Console.Write($"Downloading {name}.fits... ");
             await using var input = await _httpClient.GetStreamAsync(uri, cancellationToken);
             await using var output = File.Create(Path.Combine(directory, name + ".fits"));
             await input.CopyToAsync(output, cancellationToken);
+            Console.WriteLine("Done!");
         }
+
     }
 }
 
