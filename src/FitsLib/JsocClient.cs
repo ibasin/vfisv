@@ -52,11 +52,11 @@ public sealed class JsocClient(HttpClient httpClient)
         double Number(int i) => double.Parse(Keyword(i), CultureInfo.InvariantCulture);
     }
 
-    public async Task DownloadSegmentsAsync(HmiObservationDescriptor observation, string directory, CancellationToken cancellationToken = default)
+    public async Task DownloadSegmentsAsync(HmiObservationDescriptor descriptor, string directory, CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(directory);
 
-        foreach (var (name, uri) in observation.Segments)
+        foreach (var (name, uri) in descriptor.Segments)
         {
             Console.Write($"Downloading {name}.fits... ");
             await using var input = await _httpClient.GetStreamAsync(uri, cancellationToken);

@@ -5,7 +5,7 @@ namespace FitsLib;
 
 public static class Driver
 {
-    public static async Task RunAsync(string inputDir, DateTime time, PixelRegion? region)
+    public static async Task<FitsImage[]> RunAsync(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
     {
         var jsonOptions = new JsonSerializerOptions
         {
@@ -15,15 +15,27 @@ public static class Driver
         };
         var cancellationToken = CancellationToken.None;
 
-        var client = new JsocClient(new HttpClient());
-        var descriptor = await client.DescribeAsync(time, cancellationToken);
+        HmiObservationMetadata metadata;
+        if (downloadFitsFiles)
+        {
+            var client = new JsocClient(new HttpClient());
+            var descriptor = await client.DescribeAsync(time, cancellationToken);
+            metadata = descriptor.Metadata;
 
-        await client.DownloadSegmentsAsync(descriptor, inputDir, cancellationToken);
+            await client.DownloadSegmentsAsync(descriptor, inputDir, cancellationToken);
 
-        var json = JsonSerializer.Serialize(descriptor.Metadata, jsonOptions);
-        await File.WriteAllTextAsync(Path.Combine(inputDir, "metadata.json"), json, cancellationToken);
+            Console.Write("Saving metadata.json... ");
+            var json = JsonSerializer.Serialize(metadata, jsonOptions);
+            await File.WriteAllTextAsync(Path.Combine(inputDir, "metadata.json"), json, cancellationToken);
+            Console.WriteLine("Done!");
+        }
+        else
+        {
+            var metadataPath = Path.Combine(inputDir, "metadata.json");
+            metadata = JsonSerializer.Deserialize<HmiObservationMetadata>(await File.ReadAllTextAsync(metadataPath, cancellationToken), jsonOptions) ?? throw new InvalidDataException("Observation metadata is empty.");
+        }
 
-
-
+        var images = FitsImageReader.ReadFitsImagesInDirectory(inputDir, metadata);
+        return images;
     }
 }

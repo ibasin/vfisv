@@ -1,6 +1,6 @@
 namespace FitsLib;
 
-public sealed record FitsFloatImage(int Width, int Height, float[] Pixels)
+public sealed record FitsImage(int Width, int Height, float[] Pixels)
 {
     #region Custom Indexer
     public float this[int x, int y]

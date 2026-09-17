@@ -9,19 +9,21 @@ namespace FitsLib;
 public static class FitsImageReader
 {
     #region Read All Images in input Dir
-    public static FitsFloatImage[] ReadFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
+    public static FitsImage[] ReadFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
+        Console.WriteLine("\nStarting to read all Fits images into memory...");
         ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
-        var images = new FitsFloatImage[ExpectedSegmentNames.Length];
+        var images = new FitsImage[ExpectedSegmentNames.Length];
 
-        for (var segmentName = 0; segmentName < ExpectedSegmentNames.Length; segmentName++)
+        for (var segmentIdx = 0; segmentIdx < ExpectedSegmentNames.Length; segmentIdx++)
         {
-            var path = Path.Combine(inputDir, ExpectedSegmentNames[segmentName] + ".fits");
-            if (!File.Exists(path)) throw new FileNotFoundException($"Missing HMI segment {ExpectedSegmentNames[segmentName]}.", path);
-            var image = FitsImageReader.Read(path);
+            var path = Path.Combine(inputDir, ExpectedSegmentNames[segmentIdx] + ".fits");
+            if (!File.Exists(path)) throw new FileNotFoundException($"Missing HMI segment {ExpectedSegmentNames[segmentIdx]}.", path);
+            var image = Read(path);
             if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
-            images[segmentName] = image;
+            images[segmentIdx] = image;
         }
+        Console.WriteLine("Done reading all Fits images into memory...");
 
         return images;
     }
@@ -35,7 +37,7 @@ public static class FitsImageReader
     #endregion
 
     #region Read Single Image
-    public static FitsFloatImage Read(string path)
+    public static FitsImage Read(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var fits = new Fits(path, FileAccess.Read);
@@ -66,7 +68,7 @@ public static class FitsImageReader
         }
     }
 
-    private static FitsFloatImage ReadRiceImage(BinaryTableHDU table)
+    private static FitsImage ReadRiceImage(BinaryTableHDU table)
     {
         var header = table.Header;
         var compression = header.GetStringValue("ZCMPTYPE")?.Trim();
@@ -111,9 +113,9 @@ public static class FitsImageReader
             }
         }
 
-        return new FitsFloatImage(width, height, pixels);
+        return new FitsImage(width, height, pixels);
     }
-    private static FitsFloatImage ReadOrdinaryImage(ImageHDU image)
+    private static FitsImage ReadOrdinaryImage(ImageHDU image)
     {
         var header = image.Header;
         var width = header.GetIntValue("NAXIS1", 0);
@@ -125,7 +127,7 @@ public static class FitsImageReader
         var blank = header.ContainsKey("BLANK") ? header.GetIntValue("BLANK") : int.MinValue;
         var pixels = new float[checked(width * height)];
         FlattenAndScale(image.Kernel, pixels, scale, zero, blank);
-        return new FitsFloatImage(width, height, pixels);
+        return new FitsImage(width, height, pixels);
     }
     private static int ReadCompressionParameter(Header header, string name, int defaultValue)
     {

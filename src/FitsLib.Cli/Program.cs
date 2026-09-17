@@ -8,6 +8,6 @@ public class Program
         var time = DateTime.Parse("2/15/2012 3:24:00 PM");
         PixelRegion? region = new PixelRegion(1900, 1900, 64, 64);
 
-        await Driver.RunAsync(inputDir, time, region);
+        var images = await Driver.RunAsync(inputDir, time, region, false);
     }
 }
