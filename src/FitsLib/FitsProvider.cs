@@ -42,6 +42,8 @@ public static class FitsProvider
 
     public static Task Save4OutputImages(string outputDir, string prefix, FloatImage[] images)
     {
+        Console.Write("Saving output images... ");
+        
         if (images.Length != 4) throw new ArgumentException("Expected exactly 4 images.", nameof(images));
         
         var inclination = images[0];
@@ -62,6 +64,8 @@ public static class FitsProvider
 
         var pressurePath = Path.Combine(outputDir, $"{prefix}.Pressure.fits");
         FitsFloatImageReaderWriter.Write(pressurePath, pressure);
+
+        Console.WriteLine("Done!");
 
         return Task.CompletedTask;
     }
