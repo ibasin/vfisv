@@ -20,8 +20,8 @@ public sealed class HmiImageInverter(FilterCalibration calibration, VfisvOptions
         const int bins = 6; 
         const int variables = 24;
         
-        var pixels = checked(metadata.Width * metadata.Height);
-        if (planarStokes.Length != pixels * variables) throw new ArgumentException("Expected 24 complete Stokes planes.", nameof(planarStokes));
+        var pixelsCount = checked(metadata.Width * metadata.Height);
+        if (planarStokes.Length != pixelsCount * variables) throw new ArgumentException("Expected 24 complete Stokes planes.", nameof(planarStokes));
         var solarArcSeconds = Math.Asin(metadata.SolarRadiusMeters / metadata.ObserverDistanceMeters) / Math.PI * 180.0 * 3600.0;
         var mask = PipelineUtilities.MapInvalidValues(planarStokes, variables, metadata.Width, metadata.Height,
             metadata.ReferencePixelX, metadata.ReferencePixelY, metadata.PixelScaleX, metadata.PixelScaleY, solarArcSeconds, region);
@@ -33,13 +33,13 @@ public sealed class HmiImageInverter(FilterCalibration calibration, VfisvOptions
             ? _options with { NoiseFactors = [0.083, 0.167, 0.167, 0.118] }
             : _options;
         var engine = new VfisvEngine(engineOptions);
-        var models = Enumerable.Repeat(double.NaN, pixels * 10).ToArray();
-        var errors = Enumerable.Repeat(double.NaN, pixels * 12).ToArray();
-        var statuses = Enumerable.Repeat(ConvergenceStatus.IntensityTooLow, pixels).ToArray();
+        var models = Enumerable.Repeat(double.NaN, pixelsCount * 10).ToArray();
+        var errors = Enumerable.Repeat(double.NaN, pixelsCount * 12).ToArray();
+        var statuses = Enumerable.Repeat(ConvergenceStatus.IntensityTooLow, pixelsCount).ToArray();
         var parallelOptions = new ParallelOptions { CancellationToken = cancellationToken };
         if (maximumDegreeOfParallelism is { } degree) parallelOptions.MaxDegreeOfParallelism = degree;
 
-        Parallel.For(0, pixels, parallelOptions, pixel =>
+        Parallel.For(0, pixelsCount, parallelOptions, pixel =>
         {
             if (mask.Reasons[pixel] != PixelMaskReason.Valid) return;
             var x = pixel % metadata.Width; var y = pixel / metadata.Width;
@@ -48,7 +48,7 @@ public sealed class HmiImageInverter(FilterCalibration calibration, VfisvOptions
             var filters = _calibration.CreateFilters(bins, 149, scaledX, scaledY, geometry);
             FilterCalibration.DivideInPlace(filters, normalization);
             var observed = new double[variables];
-            for (var variable = 0; variable < variables; variable++) observed[variable] = planarStokes[pixel + variable * pixels];
+            for (var variable = 0; variable < variables; variable++) observed[variable] = planarStokes[pixel + variable * pixelsCount];
             var result = engine.Invert(new InversionRequest { Filters = filters, Observed = observed });
             Array.Copy(result.Model, 0, models, pixel * 10, 10);
             Array.Copy(result.Errors, 0, errors, pixel * 12, 12);
