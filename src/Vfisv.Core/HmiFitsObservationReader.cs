@@ -22,8 +22,7 @@ public static class HmiFitsObservationReader
             var path = Path.Combine(directory, SegmentNames[plane] + ".fits");
             if (!File.Exists(path)) throw new FileNotFoundException($"Missing HMI segment {SegmentNames[plane]}.", path);
             var image = CSharpFitsImageReader.Read(path);
-            if (image.Width != metadata.Width || image.Height != metadata.Height)
-                throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
+            if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
             image.Pixels.CopyTo(planar, plane * pixelsPerPlane);
         }
 
