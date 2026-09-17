@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace FitsLib;
 
-public static class FitsDriver
+public static class FitsProvider
 {
     public static async Task<FloatImage[]> Get24Images(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
     {

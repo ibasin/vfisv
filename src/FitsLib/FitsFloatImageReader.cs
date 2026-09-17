@@ -2,10 +2,8 @@ using nom.tam.fits;
 
 namespace FitsLib;
 
-// Reads ordinary FITS images and the RICE_1 tile-compressed binary-table images
-// produced by JSOC.CSharpFITS supplies FITS/HDU/table parsing; its 2008-era
-// implementation does not include the tile-compression codecs, so RICE_1 tiles
-// are decoded here.
+// Reads ordinary FITS images and the RICE_1 tile-compressed binary-table images produced by JSOC.CSharpFITS supplies FITS/HDU/table parsing; its 2008-era
+// implementation does not include the tile-compression codecs, so RICE_1 tiles are decoded here.
 public static class FitsFloatImageReader
 {
     #region Read All Images in input Dir
@@ -43,26 +41,22 @@ public static class FitsFloatImageReader
         var fits = new Fits(path, FileAccess.Read);
         try
         {
-            BasicHDU? hdu;
-            while ((hdu = fits.ReadHDU()) is not null)
+            while (fits.ReadHDU() is { } hdu)
             {
                 if (hdu.Header.GetBooleanValue("ZIMAGE", false))
                 {
-                    if (hdu is not BinaryTableHDU table)
-                        throw new InvalidDataException("A compressed FITS image must be stored in a binary-table HDU.");
+                    if (hdu is not BinaryTableHDU table) throw new InvalidDataException("A compressed FITS image must be stored in a binary-table HDU.");
                     return ReadRiceImage(table);
                 }
 
-                if (hdu is ImageHDU image && image.Header.GetIntValue("NAXIS", 0) == 2)
-                    return ReadOrdinaryImage(image);
+                if (hdu is ImageHDU image && image.Header.GetIntValue("NAXIS", 0) == 2) return ReadOrdinaryImage(image);
             }
 
             throw new InvalidDataException("The FITS file contains no two-dimensional image.");
         }
         finally
         {
-            // CSharpFITS 1.1.0 can throw from Close() after a failed legacy stream
-            // initialization; do not let that hide the useful parsing exception.
+            // CSharpFITS 1.1.0 can throw from Close() after a failed legacy stream initialization; do not let that hide the useful parsing exception.
             try { fits.Close(); }
             catch (NullReferenceException) { }
         }
@@ -161,6 +155,13 @@ public static class FitsFloatImageReader
             var raw = Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
             destination[index++] = raw == blank ? float.NaN : (float)(raw * scale + zero);
         }
+    }
+    #endregion
+
+    #region Write Single Image
+    public static void Write(string path, FloatImage image)
+    {
+
     }
     #endregion
 }
