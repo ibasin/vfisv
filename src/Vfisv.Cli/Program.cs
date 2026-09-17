@@ -89,8 +89,9 @@ try
             var client = new JsocClient(http); 
             var descriptor = await client.DescribeAsync(time);
             
-            await client.DownloadSegmentsAsync(descriptor, args[7]);
-            File.WriteAllText(Path.Combine(args[7], "metadata.json"), JsonSerializer.Serialize(descriptor.Metadata, jsonOptions));
+            //This is commented out to save the time re-downloading files assuming they are already there
+            //await client.DownloadSegmentsAsync(descriptor, args[7]);
+            //File.WriteAllText(Path.Combine(args[7], "metadata.json"), JsonSerializer.Serialize(descriptor.Metadata, jsonOptions));
             
             InvertFitsDirectory(args[7], args[6], args[8], region, jsonOptions);
             return 0;
