@@ -1,12 +1,14 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31903.59
+# Visual Studio Version 18
+VisualStudioVersion = 18.10.12210.168 stable
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vfisv.Core", "src/Vfisv.Core/Vfisv.Core.csproj", "{6D62D737-1DA3-41C6-9F68-27C78F37A94A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vfisv.Core", "src\Vfisv.Core\Vfisv.Core.csproj", "{6D62D737-1DA3-41C6-9F68-27C78F37A94A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vfisv.Cli", "src/Vfisv.Cli/Vfisv.Cli.csproj", "{BC3F6CD0-E3A0-4891-A844-FC30A9B56BA5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vfisv.Cli", "src\Vfisv.Cli\Vfisv.Cli.csproj", "{BC3F6CD0-E3A0-4891-A844-FC30A9B56BA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vfisv.Tests", "tests/Vfisv.Tests/Vfisv.Tests.csproj", "{9D9A4636-1758-488F-A143-D542F5988925}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vfisv.Tests", "tests\Vfisv.Tests\Vfisv.Tests.csproj", "{9D9A4636-1758-488F-A143-D542F5988925}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitsLib", "FitsLib\FitsLib.csproj", "{965B04F2-A2C8-4945-A3EF-541DDF2D2627}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,5 +28,12 @@ Global
 		{9D9A4636-1758-488F-A143-D542F5988925}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D9A4636-1758-488F-A143-D542F5988925}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D9A4636-1758-488F-A143-D542F5988925}.Release|Any CPU.Build.0 = Release|Any CPU
+		{965B04F2-A2C8-4945-A3EF-541DDF2D2627}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{965B04F2-A2C8-4945-A3EF-541DDF2D2627}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{965B04F2-A2C8-4945-A3EF-541DDF2D2627}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{965B04F2-A2C8-4945-A3EF-541DDF2D2627}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

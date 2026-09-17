@@ -31,7 +31,9 @@ public sealed class JsocClient(HttpClient httpClient)
         var root = json.RootElement;
         if (root.GetProperty("count").GetInt32() != 1) throw new InvalidOperationException("JSOC returned zero or multiple records.");
         var keywords = root.GetProperty("keywords");
+        
         string Keyword(int index) => keywords[index].GetProperty("values")[0].GetString() ?? throw new InvalidDataException("Missing JSOC keyword.");
+        
         var segments = root.GetProperty("segments");
         var dims = segments[0].GetProperty("dims")[0].GetString()!.Split('x');
         var uris = new Dictionary<string, Uri>(StringComparer.OrdinalIgnoreCase);
