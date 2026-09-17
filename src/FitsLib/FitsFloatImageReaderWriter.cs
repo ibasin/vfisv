@@ -1,4 +1,8 @@
 using nom.tam.fits;
+using System.Buffers.Binary;
+using System.Globalization;
+using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FitsLib;
 
@@ -161,7 +165,37 @@ public static class FitsFloatImageReaderWriter
     #region Write Single Image
     public static void Write(string fullFileName, FloatImage image)
     {
-
+        using var stream = File.Create(fullFileName);
+        var cards = new List<string>
+        {
+            Card("SIMPLE", "T", "file conforms to FITS standard"), Card("BITPIX", "-32", "32-bit IEEE float"),
+            Card("NAXIS", "2", null), Card("NAXIS1", image.Width.ToString(CultureInfo.InvariantCulture), null),
+            Card("NAXIS2", image.Height.ToString(CultureInfo.InvariantCulture), null), "END".PadRight(80)
+        };
+        var header = Encoding.ASCII.GetBytes(string.Concat(cards));
+        stream.Write(header); WritePadding(stream, header.Length, 0x20);
+        Span<byte> bytes = stackalloc byte[4];
+        foreach (var value in image.Pixels)
+        {
+            BinaryPrimitives.WriteInt32BigEndian(bytes, BitConverter.SingleToInt32Bits(value)); stream.Write(bytes);
+        }
+        WritePadding(stream, image.Pixels.Length * 4, 0x00);
+    }
+    private static string Card(string key, string value, string? comment)
+    {
+        var text = $"{key,-8}= {value,20}";
+        if (comment is not null) text += $" / {comment}";
+        return text.PadRight(80)[..80];
+    }
+    private static void WritePadding(Stream stream, int length, byte value)
+    {
+        var padding = (2880 - length % 2880) % 2880;
+        if (padding > 0)
+        {
+            var bytes = new byte[padding];
+            if (value != 0) Array.Fill(bytes, value);
+            stream.Write(bytes);
+        }
     }
     #endregion
 }
