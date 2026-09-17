@@ -11,7 +11,7 @@ namespace FitsLib;
 public static class FitsFloatImageReaderWriter
 {
     #region Read All Images in input Dir
-    public static FloatImage[] ReadFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
+    public static FloatImage[] Read24InputFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
         Console.WriteLine("\n***** Starting to read all fits images into memory *****");
         ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
@@ -72,7 +72,9 @@ public static class FitsFloatImageReaderWriter
         var compression = header.GetStringValue("ZCMPTYPE")?.Trim();
         if (!string.Equals(compression, "RICE_1", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(compression, "RICE_ONE", StringComparison.OrdinalIgnoreCase))
+        {
             throw new NotSupportedException($"Only RICE_1 compressed FITS images are supported; got {compression ?? "<missing>"}.");
+        }
 
         var bitpix = header.GetIntValue("ZBITPIX", 0);
         var dimensions = header.GetIntValue("ZNAXIS", 0);
@@ -83,12 +85,9 @@ public static class FitsFloatImageReaderWriter
         var blockSize = ReadCompressionParameter(header, "BLOCKSIZE", 32);
         var bytesPerPixel = ReadCompressionParameter(header, "BYTEPIX", Math.Abs(bitpix) / 8);
 
-        if (dimensions != 2 || width <= 0 || height <= 0)
-            throw new NotSupportedException("Only non-empty two-dimensional compressed FITS images are supported.");
-        if (bitpix != 16 || bytesPerPixel != 2)
-            throw new NotSupportedException($"Only 16-bit RICE_1 pixels are supported; got ZBITPIX={bitpix}, BYTEPIX={bytesPerPixel}.");
-        if (tileWidth != width || tileHeight != 1 || table.NRows != height)
-            throw new NotSupportedException("This reader currently requires one complete image row per compressed tile.");
+        if (dimensions != 2 || width <= 0 || height <= 0) throw new NotSupportedException("Only non-empty two-dimensional compressed FITS images are supported.");
+        if (bitpix != 16 || bytesPerPixel != 2) throw new NotSupportedException($"Only 16-bit RICE_1 pixels are supported; got ZBITPIX={bitpix}, BYTEPIX={bytesPerPixel}.");
+        if (tileWidth != width || tileHeight != 1 || table.NRows != height) throw new NotSupportedException("This reader currently requires one complete image row per compressed tile.");
 
         var column = table.FindColumn("COMPRESSED_DATA");
         if (column < 0) throw new InvalidDataException("The compressed image has no COMPRESSED_DATA column.");
@@ -100,8 +99,7 @@ public static class FitsFloatImageReaderWriter
 
         for (var row = 0; row < height; row++)
         {
-            if (table.GetElement(row, column) is not byte[] compressed)
-                throw new InvalidDataException($"Compressed tile {row} is not a byte array.");
+            if (table.GetElement(row, column) is not byte[] compressed) throw new InvalidDataException($"Compressed tile {row} is not a byte array.");
             var raw = RiceCodec.DecodeInt16(compressed, width, blockSize);
             var offset = row * width;
             for (var x = 0; x < width; x++)

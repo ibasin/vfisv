@@ -36,7 +36,7 @@ public static class FitsProvider
             metadata = JsonSerializer.Deserialize<HmiObservationMetadata>(await File.ReadAllTextAsync(metadataPath, cancellationToken), jsonOptions) ?? throw new InvalidDataException("Observation metadata is empty.");
         }
 
-        var images = FitsFloatImageReaderWriter.ReadFitsImagesInDirectory(inputDir, metadata);
+        var images = FitsFloatImageReaderWriter.Read24InputFitsImagesInDirectory(inputDir, metadata);
         return images;
     }
 
