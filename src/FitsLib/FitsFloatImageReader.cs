@@ -11,7 +11,7 @@ public static class FitsFloatImageReader
     #region Read All Images in input Dir
     public static FloatImage[] ReadFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
-        Console.WriteLine("\nStarting to read all Fits images into memory...");
+        Console.WriteLine("\n***** Starting to read all fits images into memory *****");
         ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
         var images = new FloatImage[ExpectedSegmentNames.Length];
 
@@ -23,7 +23,7 @@ public static class FitsFloatImageReader
             if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
             images[segmentIdx] = image;
         }
-        Console.WriteLine("Done reading all Fits images into memory...");
+        Console.WriteLine("***** Done reading all fits images into memory *****");
 
         return images;
     }
