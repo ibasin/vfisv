@@ -9,7 +9,7 @@ public class Program
         var time = DateTime.Parse("2/15/2012 3:24:00 PM");
         PixelRegion? region = new PixelRegion(1900, 1900, 64, 64);
 
-        var inputImages = await FitsProvider.Load24InputImages("input", time, region, true);
+        var inputImages = await FitsProvider.Load24InputImages("input", time, region);
 
         //this is fake processing, we just copy 4 first inputs into outputs 
         var outputImages = new FloatImage[4];
