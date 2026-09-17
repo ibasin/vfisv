@@ -73,21 +73,25 @@ try
         }
         case "invert-fits":
         {
-            if (args.Length is not (4 or 8))
-                return UsageError("invert-fits requires INPUT_DIR DATA_DIR OUTPUT_DIR and optional X Y WIDTH HEIGHT");
+            if (args.Length is not (4 or 8)) return UsageError("invert-fits requires INPUT_DIR DATA_DIR OUTPUT_DIR and optional X Y WIDTH HEIGHT");
             PixelRegion? region = args.Length == 8 ? ParseRegion(args, 4) : null;
             InvertFitsDirectory(args[1], args[2], args[3], region, jsonOptions);
             return 0;
         }
         case "process-date":
         {
-            if (args.Length is not (9 or 13))
-                return UsageError("process-date requires YEAR MONTH DAY HOUR MINUTE DATA_DIR WORK_DIR OUTPUT_DIR and optional X Y WIDTH HEIGHT");
+            if (args.Length is not (9 or 13)) return UsageError("process-date requires YEAR MONTH DAY HOUR MINUTE DATA_DIR WORK_DIR OUTPUT_DIR and optional X Y WIDTH HEIGHT");
+            
             var time = new DateTimeOffset(int.Parse(args[1]), int.Parse(args[2]), int.Parse(args[3]), int.Parse(args[4]), int.Parse(args[5]), 0, TimeSpan.Zero);
             PixelRegion? region = args.Length == 13 ? ParseRegion(args, 9) : null;
-            using var http = new HttpClient(); var client = new JsocClient(http); var descriptor = await client.DescribeAsync(time);
+            
+            using var http = new HttpClient(); 
+            var client = new JsocClient(http); 
+            var descriptor = await client.DescribeAsync(time);
+            
             await client.DownloadSegmentsAsync(descriptor, args[7]);
             File.WriteAllText(Path.Combine(args[7], "metadata.json"), JsonSerializer.Serialize(descriptor.Metadata, jsonOptions));
+            
             InvertFitsDirectory(args[7], args[6], args[8], region, jsonOptions);
             return 0;
         }
@@ -119,16 +123,13 @@ static PixelRegion ParseRegion(string[] args, int offset) => new(
     int.Parse(args[offset + 2], CultureInfo.InvariantCulture),
     int.Parse(args[offset + 3], CultureInfo.InvariantCulture));
 
-static void InvertFitsDirectory(string inputDirectory, string dataDirectory, string outputDirectory,
-    PixelRegion? region, JsonSerializerOptions jsonOptions)
+static void InvertFitsDirectory(string inputDirectory, string dataDirectory, string outputDirectory, PixelRegion? region, JsonSerializerOptions jsonOptions)
 {
     var metadataPath = Path.Combine(inputDirectory, "metadata.json");
-    var metadata = JsonSerializer.Deserialize<HmiObservationMetadata>(File.ReadAllText(metadataPath), jsonOptions)
-                   ?? throw new InvalidDataException("Observation metadata is empty.");
+    var metadata = JsonSerializer.Deserialize<HmiObservationMetadata>(File.ReadAllText(metadataPath), jsonOptions) ?? throw new InvalidDataException("Observation metadata is empty.");
     Console.WriteLine("Reading and decompressing 24 HMI FITS segments...");
     var stokes = HmiFitsObservationReader.ReadDirectory(inputDirectory, metadata);
-    var recordTime = DateTimeOffset.ParseExact(metadata.RecordTime, "yyyy.MM.dd_HH:mm:ss'_TAI'",
-        CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+    var recordTime = DateTimeOffset.ParseExact(metadata.RecordTime, "yyyy.MM.dd_HH:mm:ss'_TAI'", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
     var calibration = FilterCalibration.Load(dataDirectory, JsocTime.FromTaiCalendar(recordTime));
     Console.WriteLine(region is null ? "Inverting full image..." : $"Inverting region {region}...");
     var result = new HmiImageInverter(calibration).Invert(stokes, metadata, region);
