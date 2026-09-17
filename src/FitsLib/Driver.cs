@@ -5,7 +5,7 @@ namespace FitsLib;
 
 public static class Driver
 {
-    public static async Task<FitsImage[]> RunAsync(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
+    public static async Task<FitsImage[]> Get24Images(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
     {
         var jsonOptions = new JsonSerializerOptions
         {
