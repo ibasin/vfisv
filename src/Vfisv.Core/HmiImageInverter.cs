@@ -15,10 +15,11 @@ public sealed class HmiImageInverter(FilterCalibration calibration, VfisvOptions
     private readonly VfisvOptions _options = options ?? new VfisvOptions();
 
     /// <param name="planarStokes">24 planes in I0..I5,Q0..Q5,U0..U5,V0..V5 order.</param>
-    public HmiImageInversionResult Invert(float[] planarStokes, HmiObservationMetadata metadata,
-        PixelRegion? region = null, int? maximumDegreeOfParallelism = null, CancellationToken cancellationToken = default)
+    public HmiImageInversionResult Invert(float[] planarStokes, HmiObservationMetadata metadata, PixelRegion? region = null, int? maximumDegreeOfParallelism = null, CancellationToken cancellationToken = default)
     {
-        const int bins = 6; const int variables = 24;
+        const int bins = 6; 
+        const int variables = 24;
+        
         var pixels = checked(metadata.Width * metadata.Height);
         if (planarStokes.Length != pixels * variables) throw new ArgumentException("Expected 24 complete Stokes planes.", nameof(planarStokes));
         var solarArcSeconds = Math.Asin(metadata.SolarRadiusMeters / metadata.ObserverDistanceMeters) / Math.PI * 180.0 * 3600.0;
