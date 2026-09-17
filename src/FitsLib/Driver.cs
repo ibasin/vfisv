@@ -5,7 +5,7 @@ namespace FitsLib;
 
 public static class Driver
 {
-    public static async Task<FitsImage[]> Get24Images(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
+    public static async Task<FloatImage[]> Get24Images(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
     {
         var jsonOptions = new JsonSerializerOptions
         {
@@ -35,7 +35,7 @@ public static class Driver
             metadata = JsonSerializer.Deserialize<HmiObservationMetadata>(await File.ReadAllTextAsync(metadataPath, cancellationToken), jsonOptions) ?? throw new InvalidDataException("Observation metadata is empty.");
         }
 
-        var images = FitsImageReader.ReadFitsImagesInDirectory(inputDir, metadata);
+        var images = FitsFloatImageReader.ReadFitsImagesInDirectory(inputDir, metadata);
         return images;
     }
 }

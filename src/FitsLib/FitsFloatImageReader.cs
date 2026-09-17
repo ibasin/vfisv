@@ -6,14 +6,14 @@ namespace FitsLib;
 // produced by JSOC.CSharpFITS supplies FITS/HDU/table parsing; its 2008-era
 // implementation does not include the tile-compression codecs, so RICE_1 tiles
 // are decoded here.
-public static class FitsImageReader
+public static class FitsFloatImageReader
 {
     #region Read All Images in input Dir
-    public static FitsImage[] ReadFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
+    public static FloatImage[] ReadFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
         Console.WriteLine("\nStarting to read all Fits images into memory...");
         ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
-        var images = new FitsImage[ExpectedSegmentNames.Length];
+        var images = new FloatImage[ExpectedSegmentNames.Length];
 
         for (var segmentIdx = 0; segmentIdx < ExpectedSegmentNames.Length; segmentIdx++)
         {
@@ -37,7 +37,7 @@ public static class FitsImageReader
     #endregion
 
     #region Read Single Image
-    public static FitsImage Read(string path)
+    public static FloatImage Read(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var fits = new Fits(path, FileAccess.Read);
@@ -68,7 +68,7 @@ public static class FitsImageReader
         }
     }
 
-    private static FitsImage ReadRiceImage(BinaryTableHDU table)
+    private static FloatImage ReadRiceImage(BinaryTableHDU table)
     {
         var header = table.Header;
         var compression = header.GetStringValue("ZCMPTYPE")?.Trim();
@@ -113,9 +113,9 @@ public static class FitsImageReader
             }
         }
 
-        return new FitsImage(width, height, pixels);
+        return new FloatImage(width, height, pixels);
     }
-    private static FitsImage ReadOrdinaryImage(ImageHDU image)
+    private static FloatImage ReadOrdinaryImage(ImageHDU image)
     {
         var header = image.Header;
         var width = header.GetIntValue("NAXIS1", 0);
@@ -127,7 +127,7 @@ public static class FitsImageReader
         var blank = header.ContainsKey("BLANK") ? header.GetIntValue("BLANK") : int.MinValue;
         var pixels = new float[checked(width * height)];
         FlattenAndScale(image.Kernel, pixels, scale, zero, blank);
-        return new FitsImage(width, height, pixels);
+        return new FloatImage(width, height, pixels);
     }
     private static int ReadCompressionParameter(Header header, string name, int defaultValue)
     {
