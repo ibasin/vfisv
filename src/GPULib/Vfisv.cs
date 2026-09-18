@@ -1,7 +1,6 @@
 ﻿using FitsLib;
 using ILGPU;
 using ILGPU.Runtime;
-using System.Diagnostics;
 using Utils;
 
 namespace GPULib;
@@ -30,7 +29,7 @@ public static class Vfisv
         var outputs = new float[devices.Length][,,];
         for (var i = 0; i < devices.Length; i++)
         {
-            var (start, end) = GetStartAndEnd(i);
+            var (start, end) = GetStartAndEnd(i, devices.Length);
             inputs[i] = new float[end - start, GpuKernel.ImgDimY, 24];
             outputs[i] = new float[end - start, GpuKernel.ImgDimY, 4];
         }
@@ -40,7 +39,7 @@ public static class Vfisv
         {
             for (var i = 0; i < devices.Length; i++)
             {
-                var (start, end) = GetStartAndEnd(i);
+                var (start, end) = GetStartAndEnd(i, devices.Length);
                 for (var x = start; x < end; x++)
                 {
                     for (var s = 0; s < 24; s++)
@@ -93,7 +92,7 @@ public static class Vfisv
         {
             for (var i = 0; i < devices.Length; i++)
             {
-                var (start, end) = GetStartAndEnd(i);
+                var (start, end) = GetStartAndEnd(i, devices.Length);
                 for (var x = start; x < end; x++)
                 {
                     for (var s = 0; s < 4; s++)
@@ -107,10 +106,10 @@ public static class Vfisv
 
         return outputImages;
 
-        (int, int) GetStartAndEnd(int i)
+        (int, int) GetStartAndEnd(int i, int numDevices)
         {
             var start = sizeX * i;
-            var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+            var end = i == numDevices - 1 ? GpuKernel.ImgDimX : start + sizeX;
             return (start, end);
         }
     }
