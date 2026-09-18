@@ -1,6 +1,7 @@
 ﻿using FitsLib;
 using ILGPU;
 using ILGPU.Runtime;
+using System.Diagnostics;
 using Utils;
 
 namespace GPULib;
@@ -11,23 +12,8 @@ public static class Vfisv
     {
         if (inputImages.Length != 24) throw new ArgumentException("Input images array must have exactly 24 elements");
 
-        //prepare inputs to be copied to GPU memory
-        var inputs = new float[GpuKernel.ImgDimX, GpuKernel.ImgDimY, 24];
-        Parallel.For(0, GpuKernel.ImgDimX, x =>
-        {
-            for (var y = 0; y < GpuKernel.ImgDimY; y++)
-            {
-                for (var s = 0; s < 24; s++)
-                {
-                    inputs[x, y, s] = inputImages[s][x, y];
-                }
-            }
-        });
-
-        var outputs = new float[GpuKernel.ImgDimX, GpuKernel.ImgDimY, 4];
 
         using var context = Context.Create(builder => builder.Default().StaticFields(StaticFieldMode.MutableStaticFields).EnableAlgorithms());
-
 
         //Get CUDA devices. If CUDA device does not exist, OpenCL devices, otherwise CPU device
         //var firstDevice =
@@ -37,12 +23,44 @@ public static class Vfisv
         //if (forceCpuAccelerator) firstDevice = context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
 
         var devices = context.Devices.Where(x => x.AcceleratorType == AcceleratorType.Cuda).ToArray();
-        var offsetX = GpuKernel.ImgDimX / devices.Length;
+        var sizeX = GpuKernel.ImgDimX / devices.Length;
+
+        //prepare inputs to be copied to GPU memory
+        var inputs = new float[devices.Length][,,];
+        var outputs = new float[devices.Length][,,];
+        for (var i = 0; i < devices.Length; i++)
+        {
+            var start = sizeX * i;
+            var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+            inputs[i] = new float[end - start, GpuKernel.ImgDimY, 24];
+            outputs[i] = new float[end - start, GpuKernel.ImgDimY, 4];
+        }
+
+        Parallel.For(0, GpuKernel.ImgDimY, y =>
+        //for(var y = 0; y < GpuKernel.ImgDimY; y++)
+        {
+            for (var i = 0; i < devices.Length; i++)
+            {
+                var start = sizeX * i;
+                var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+                for (var x = start; x < end; x++)
+                {
+                    for (var s = 0; s < 24; s++)
+                    {
+                        //if (x == 2000 && y == 2000 && s == 0) Debugger.Break();
+                        inputs[i][x, y, s] = inputImages[s][x, y];
+                    }
+                }
+            }
+        });
 
         using (new ConsoleTimer("In GPU"))
         {
             Parallel.For(0, devices.Length, i =>
             {
+                var start = sizeX * i;
+                var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+
                 // ReSharper disable AccessToDisposedClosure
                 using var accelerator = devices[i].CreateAccelerator(context);
                 // ReSharper restore AccessToDisposedClosure
@@ -50,10 +68,9 @@ public static class Vfisv
                 using var stream = accelerator.CreateStream();
 
                 using var inputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDimX, GpuKernel.ImgDimY, 24));
-                inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs);
+                inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs[i]);
 
                 using var outputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDimX, GpuKernel.ImgDimY, 4));
-                //outputsMB.MemSetToZero(stream);
 
                 //TODO: try 128 and 512 and benchmark performance when kernel is complete
                 const int threadsPerBlock = 256;
@@ -66,7 +83,7 @@ public static class Vfisv
                 kernel(stream, launchDimension, inputsMB.View, outputsMB.View);
                 stream.Synchronize();
 
-                outputsMB.View.AsGeneral().CopyToCPU(stream, outputs);
+                outputsMB.View.AsGeneral().CopyToCPU(stream, outputs[i]);
             });
         }
 
@@ -76,22 +93,24 @@ public static class Vfisv
             outputImages[s] = new FloatImage(GpuKernel.ImgDimX, GpuKernel.ImgDimY);
         }
 
-        Parallel.For(0, GpuKernel.ImgDimX, x =>
+        Parallel.For(0, GpuKernel.ImgDimY, y =>
+        //for(var y = 0; y < GpuKernel.ImgDimY; y++)
         {
-            for (var y = 0; y < GpuKernel.ImgDimY; y++)
+            for (var i = 0; i < devices.Length; i++)
             {
-                for (var s = 0; s < 4; s++)
+                var start = sizeX * i;
+                var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+                for (var x = start; x < end; x++)
                 {
-                    outputImages[s][x, y] = outputs[x, y, s];
+                    for (var s = 0; s < 4; s++)
+                    {
+                        //if (x == 2000 && y == 2000 && s == 0) Debugger.Break();
+                        outputImages[s][x, y] = outputs[i][x, y, s];
+                    }
                 }
             }
         });
 
         return outputImages;
-    }
-
-    private static void ProcessOnSingleGpu()
-    {
-
     }
 }
