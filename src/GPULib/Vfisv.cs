@@ -1,6 +1,6 @@
-﻿using FitsLib;
-using ILGPU;
+﻿using ILGPU;
 using ILGPU.Runtime;
+using Utils;
 
 namespace GPULib;
 

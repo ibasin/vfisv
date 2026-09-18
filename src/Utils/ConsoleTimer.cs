@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace FitsLib;
+namespace Utils;
 
 public class ConsoleTimer : IDisposable
 {
