@@ -16,14 +16,15 @@ public static class FitsFloatImageReaderWriter
         ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
         var images = new FloatImage[ExpectedSegmentNames.Length];
 
-        for (var segmentIdx = 0; segmentIdx < ExpectedSegmentNames.Length; segmentIdx++)
+        Parallel.For(0, ExpectedSegmentNames.Length, segmentIdx =>
+        //for (var segmentIdx = 0; segmentIdx < ExpectedSegmentNames.Length; segmentIdx++)
         {
             var path = Path.Combine(inputDir, ExpectedSegmentNames[segmentIdx] + ".fits");
             if (!File.Exists(path)) throw new FileNotFoundException($"Missing HMI segment {ExpectedSegmentNames[segmentIdx]}.", path);
             var image = Read(path);
             if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
             images[segmentIdx] = image;
-        }
+        });
         Console.WriteLine("***** Done reading all *.fits images into memory *****");
 
         return images;
