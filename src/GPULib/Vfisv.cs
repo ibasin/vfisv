@@ -11,18 +11,6 @@ public static class Vfisv
     {
         if (inputImages.Length != 24) throw new ArgumentException("Input images array must have exactly 24 elements");
 
-        using var context = Context.Create(builder => builder.Default().StaticFields(StaticFieldMode.MutableStaticFields).EnableAlgorithms());
-        
-        //Get CUDA devices. If CUDA device does not exist, OpenCL devices, otherwise CPU device
-        var firstDevice =
-            context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.Cuda) ??
-            context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.OpenCL) ??
-            context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
-        if (forceCpuAccelerator) firstDevice = context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
-
-        using var accelerator = firstDevice.CreateAccelerator(context);
-        using var stream = accelerator.CreateStream();
-
         //prepare inputs to be copied to GPU memory
         var inputs = new float[GpuKernel.ImgDim, GpuKernel.ImgDim, 24];
         Parallel.For(0, GpuKernel.ImgDim, x =>
@@ -38,8 +26,20 @@ public static class Vfisv
 
         var outputs = new float[GpuKernel.ImgDim, GpuKernel.ImgDim, 4];
 
+        using var context = Context.Create(builder => builder.Default().StaticFields(StaticFieldMode.MutableStaticFields).EnableAlgorithms());
+        
+        //Get CUDA devices. If CUDA device does not exist, OpenCL devices, otherwise CPU device
+        var firstDevice =
+            context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.Cuda) ??
+            context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.OpenCL) ??
+            context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
+        if (forceCpuAccelerator) firstDevice = context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
+
         using (new ConsoleTimer("In GPU"))
         {
+            using var accelerator = firstDevice.CreateAccelerator(context);
+            using var stream = accelerator.CreateStream();
+
             using var inputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 24));
             inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs);
 
@@ -78,5 +78,10 @@ public static class Vfisv
         });
 
         return outputImages;
+    }
+
+    private static void ProcessOnSingleGpu()
+    {
+
     }
 }

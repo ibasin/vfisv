@@ -24,9 +24,9 @@ public class Program
         var y = 2000;
         
         var sum = 0f;
-        for (var i = 0; i < 6; i++)
+        for (var i = 0; i < 24; i++)
         {
-            sum = inputImages[i][x, y];
+            sum += inputImages[i][x, y];
         }
         
         const float tolerance = 0.0001f;
