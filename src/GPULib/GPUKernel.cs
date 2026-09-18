@@ -5,6 +5,7 @@ namespace GPULib;
 
 public static class GpuKernel
 {
+    #region Kernel Launch method
     //TODO: figure out if we should use DenseXY or DenseZY?
     public static void Launch(ArrayView3D<float, Stride3D.DenseXY> inputsAV3, ArrayView3D<float, Stride3D.DenseXY> outputsAV3)
     {
@@ -22,7 +23,9 @@ public static class GpuKernel
             outputsAV3.SetPixelValue(x, y, s, inputsAV3.GetPixelValue(x, y, s));
         }
     }
+    #endregion
 
+    #region Helper Methods
     private static float GetPixelValue(this ArrayView3D<float, Stride3D.DenseXY> meAV3, int x, int y, int segmentId)
     {
         return meAV3[new Index3D(x, y, segmentId)];
@@ -31,6 +34,9 @@ public static class GpuKernel
     {
         meAV3[new Index3D(x, y, segmentId)] = value;
     }
+    #endregion
 
-    public const int ImgDim = 4; //4096; //image is a square of 4096x4096 pixels
+    #region Constants
+    public const int ImgDim = 4096; //image is a square of 4096x4096 pixels
+    #endregion
 }

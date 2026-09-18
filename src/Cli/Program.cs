@@ -11,15 +11,11 @@ public class Program
         PixelRegion? region = new PixelRegion(1900, 1900, 64, 64);
 
         var inputImages = await FitsProvider.Load24InputImages("input", time, region, false);
+        Console.WriteLine(inputImages[0][2000, 2000]);
 
-        //var outputImages = Vfisv.Process(inputImages, true);
+        var outputImages = Vfisv.ProcessOnGpu(inputImages);
 
-        //this is fake processing, we just copy 4 first inputs into outputs 
-        var outputImages = new FloatImage[4];
-        outputImages[0] = inputImages[0];
-        outputImages[1] = inputImages[1];
-        outputImages[2] = inputImages[2];
-        outputImages[3] = inputImages[3];
+        Console.WriteLine(outputImages[0][2000, 2000]);
 
         var prefix = time.ToString(CultureInfo.InvariantCulture).Replace("/", "-").Replace("\\", "-").Replace(" ", "-").Replace(":", "-");
         await FitsProvider.Save4OutputImages("output", prefix, outputImages);

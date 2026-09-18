@@ -6,7 +6,7 @@ namespace GPULib;
 
 public static class Vfisv
 {
-    public static FloatImage[] Process(FloatImage[] inputImages, bool forceCpuAccelerator = false)
+    public static FloatImage[] ProcessOnGpu(FloatImage[] inputImages, bool forceCpuAccelerator = false)
     {
         Console.Write("\nLaunching GPU Kernel... ");
         if (inputImages.Length != 24) throw new ArgumentException("Input images array must have exactly 24 elements");
@@ -44,8 +44,8 @@ public static class Vfisv
         using var outputsMB = accelerator.Allocate3DDenseXY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 4));
         outputsMB.MemSetToZero(stream);
 
-        //TODO: try 128 and 512 and benchmark performance
-        const int threadsPerBlock = 16; //256; 
+        //TODO: try 128 and 512 and benchmark performance when kernel is complete
+        const int threadsPerBlock = 256; 
         
         //TODO: figure out if we need to configure SharedMemory here too
         var launchDimension = new KernelConfig(new Index1D(GpuKernel.ImgDim * GpuKernel.ImgDim / threadsPerBlock), new Index1D(threadsPerBlock));
