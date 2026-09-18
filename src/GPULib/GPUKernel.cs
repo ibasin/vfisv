@@ -7,7 +7,6 @@ namespace GPULib;
 public static class GpuKernel
 {
     #region Kernel Launch method
-    //TODO: figure out if we should use DenseXY or DenseZY?
     public static void Launch(ArrayView3D<float, Stride3D.DenseZY> inputsAV3, ArrayView3D<float, Stride3D.DenseZY> outputsAV3)
     {
         int blockId = Grid.IdxX;
