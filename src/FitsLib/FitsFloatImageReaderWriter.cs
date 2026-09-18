@@ -2,7 +2,6 @@ using nom.tam.fits;
 using System.Buffers.Binary;
 using System.Globalization;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FitsLib;
 
