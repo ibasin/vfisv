@@ -10,9 +10,9 @@ public class Program
         var time = DateTime.Parse("2/15/2012 3:24:00 PM");
         PixelRegion? region = new PixelRegion(1900, 1900, 64, 64);
 
-        var inputImages = await FitsProvider.Load24InputImages("input", time, region, false);
+        var inputImages = await FitsProvider.Load24InputImages("input", time, region);
 
-        var outputImages = Vfisv.Process(inputImages);
+        var outputImages = Vfisv.Process(inputImages, true);
 
         var prefix = time.ToString(CultureInfo.InvariantCulture).Replace("/", "-").Replace("\\", "-").Replace(" ", "-").Replace(":", "-");
         await FitsProvider.Save4OutputImages("output", prefix, outputImages);

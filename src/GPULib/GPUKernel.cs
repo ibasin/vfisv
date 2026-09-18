@@ -17,9 +17,9 @@ public static class GpuKernel
         var y = globalId % ImgDim;
 
         //as a test, we copy first 4 input arrays into output arrays
-        for (var i = 0; i < 4; i++)
+        for (var s = 0; s < 4; s++)
         {
-            outputsAV3.SetPixelValue(x, y, i, inputsAV3.GetPixelValue(x, y, i));
+            outputsAV3.SetPixelValue(x, y, s, inputsAV3.GetPixelValue(x, y, s));
         }
     }
 
@@ -32,5 +32,5 @@ public static class GpuKernel
         meAV3[new Index3D(x, y, segmentId)] = value;
     }
 
-    public const int ImgDim = 4096; //image is a square of 4096x4096 pixels
+    public const int ImgDim = 4; //4096; //image is a square of 4096x4096 pixels
 }

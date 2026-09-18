@@ -45,7 +45,7 @@ public static class Vfisv
         outputsMB.MemSetToZero(stream);
 
         //TODO: try 128 and 512 and benchmark performance
-        const int threadsPerBlock = 256; 
+        const int threadsPerBlock = 16; //256; 
         
         //TODO: figure out if we need to configure SharedMemory here too
         var launchDimension = new KernelConfig(new Index1D(GpuKernel.ImgDim * GpuKernel.ImgDim / threadsPerBlock), new Index1D(threadsPerBlock));
