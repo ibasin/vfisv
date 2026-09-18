@@ -34,10 +34,8 @@ try
         case "synthesize":
         {
             if (args.Length != 4) return UsageError("synthesize requires INPUT.json MODEL.json OUTPUT.json");
-            var dto = JsonSerializer.Deserialize<InversionRequestDto>(File.ReadAllText(args[1]), jsonOptions)
-                      ?? throw new InvalidDataException("Input JSON is empty.");
-            var model = JsonSerializer.Deserialize<double[]>(File.ReadAllText(args[2]), jsonOptions)
-                        ?? throw new InvalidDataException("Model JSON is empty.");
+            var dto = JsonSerializer.Deserialize<InversionRequestDto>(File.ReadAllText(args[1]), jsonOptions) ?? throw new InvalidDataException("Input JSON is empty.");
+            var model = JsonSerializer.Deserialize<double[]>(File.ReadAllText(args[2]), jsonOptions) ?? throw new InvalidDataException("Model JSON is empty.");
             var request = dto.ToRequest();
             var synthetic = new VfisvEngine(dto.Options).Synthesize(request.Filters, request.ScatteredLight, model);
             File.WriteAllText(args[3], JsonSerializer.Serialize(synthetic, jsonOptions));

@@ -10,9 +10,16 @@ public class Program
         var time = DateTime.Parse("2/15/2012 3:24:00 PM");
         PixelRegion? region = new PixelRegion(1900, 1900, 64, 64);
 
-        var inputImages = await FitsProvider.Load24InputImages("input", time, region);
+        var inputImages = await FitsProvider.Load24InputImages("input", time, region, false);
 
-        var outputImages = Vfisv.Process(inputImages, true);
+        //var outputImages = Vfisv.Process(inputImages, true);
+
+        //this is fake processing, we just copy 4 first inputs into outputs 
+        var outputImages = new FloatImage[4];
+        outputImages[0] = inputImages[0];
+        outputImages[1] = inputImages[1];
+        outputImages[2] = inputImages[2];
+        outputImages[3] = inputImages[3];
 
         var prefix = time.ToString(CultureInfo.InvariantCulture).Replace("/", "-").Replace("\\", "-").Replace(" ", "-").Replace(":", "-");
         await FitsProvider.Save4OutputImages("output", prefix, outputImages);
