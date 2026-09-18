@@ -11,11 +11,11 @@ namespace FitsLib;
 public static class FitsFloatImageReaderWriter
 {
     #region Read All Images in input Dir
-    public static FloatImage[,] Read24InputFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
+    public static FloatImage[] Read24InputFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
         Console.WriteLine("\n***** Starting to read all fits images into memory *****");
         ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
-        var images = new FloatImage[4, 6]; //ExpectedSegmentNames.Length];
+        var images = new FloatImage[ExpectedSegmentNames.Length];
 
         for (var segmentIdx = 0; segmentIdx < ExpectedSegmentNames.Length; segmentIdx++)
         {
@@ -23,7 +23,7 @@ public static class FitsFloatImageReaderWriter
             if (!File.Exists(path)) throw new FileNotFoundException($"Missing HMI segment {ExpectedSegmentNames[segmentIdx]}.", path);
             var image = Read(path);
             if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
-            images[segmentIdx / 6, segmentIdx % 6] = image;
+            images[segmentIdx] = image;
         }
         Console.WriteLine("***** Done reading all fits images into memory *****");
 
