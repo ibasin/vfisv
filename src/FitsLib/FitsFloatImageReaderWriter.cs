@@ -12,7 +12,7 @@ public static class FitsFloatImageReaderWriter
     #region Read All Images in input Dir
     public static FloatImage[] Read24InputFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
-        Console.Write("\nReading all *.fits images into memory... ");
+        Console.Write("Reading all *.fits images into memory... ");
 
         //suppress CSharpFITS logging to console, which is very verbose and not useful for this application
         var consoleOut = Console.Out;

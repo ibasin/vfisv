@@ -14,7 +14,7 @@ public class Program
         var time = DateTime.Parse("2/15/2012 3:24:00 PM");
 
         //download images from the web, save them in inputs directory and load them into memory
-        var inputImages = await FitsProvider.Load24InputImages("input", time, false);
+        var inputImages = await FitsProvider.Load24InputImages("input", time);
 
         //process the images on GPU
         var outputImages = Vfisv.ProcessOnGpu(inputImages);

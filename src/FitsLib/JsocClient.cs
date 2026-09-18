@@ -56,15 +56,16 @@ public sealed class JsocClient(HttpClient httpClient)
     {
         Directory.CreateDirectory(directory);
 
-        foreach (var (name, uri) in descriptor.Segments)
+        Console.Write("Downloading all *.fits files... ");
+        await Parallel.ForEachAsync(descriptor.Segments, cancellationToken, async (segment, ct) =>
         {
-            Console.Write($"Downloading {name}.fits... ");
-            await using var input = await _httpClient.GetStreamAsync(uri, cancellationToken);
+            var name = segment.Key; 
+            var uri = segment.Value;
+            await using var input = await _httpClient.GetStreamAsync(uri, ct);
             await using var output = File.Create(Path.Combine(directory, name + ".fits"));
-            await input.CopyToAsync(output, cancellationToken);
-            Console.WriteLine("Done!");
-        }
-
+            await input.CopyToAsync(output, ct);
+        });
+        Console.WriteLine("Done!");
     }
 }
 

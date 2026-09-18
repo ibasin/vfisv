@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace FitsLib;
@@ -45,26 +44,14 @@ public static class FitsProvider
         Console.Write("Saving output images... ");
         
         if (images.Length != 4) throw new ArgumentException("Expected exactly 4 images.", nameof(images));
-        
-        var inclination = images[0];
-        var azimuth = images[1];
-        var temperature = images[2];
-        var pressure = images[3];
-        
+
         Directory.CreateDirectory(outputDir);
-
-        var inclinationPath = Path.Combine(outputDir, $"{prefix}.Inclination.fits");
-        FitsFloatImageReaderWriter.Write(inclinationPath, inclination);
-        
-        var azimuthPath = Path.Combine(outputDir, $"{prefix}.Azimuth.fits");
-        FitsFloatImageReaderWriter.Write(azimuthPath, azimuth);
-
-        var temperaturePath = Path.Combine(outputDir, $"{prefix}.Temperature.fits");
-        FitsFloatImageReaderWriter.Write(temperaturePath, temperature);
-
-        var pressurePath = Path.Combine(outputDir, $"{prefix}.Pressure.fits");
-        FitsFloatImageReaderWriter.Write(pressurePath, pressure);
-
+        var names = new[] { "Inclination", "Azimuth", "Temperature", "Pressure" };
+        Parallel.For(0, images.Length, i =>
+        {
+            var path = Path.Combine(outputDir, $"{prefix}.{names[i]}.fits");
+            FitsFloatImageReaderWriter.Write(path, images[i]);
+        });
         Console.WriteLine("Done!");
 
         return Task.CompletedTask;
