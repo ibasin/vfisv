@@ -30,8 +30,7 @@ public static class Vfisv
         var outputs = new float[devices.Length][,,];
         for (var i = 0; i < devices.Length; i++)
         {
-            var start = sizeX * i;
-            var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+            var (start, end) = GetStartAndEnd(i);
             inputs[i] = new float[end - start, GpuKernel.ImgDimY, 24];
             outputs[i] = new float[end - start, GpuKernel.ImgDimY, 4];
         }
@@ -41,8 +40,7 @@ public static class Vfisv
         {
             for (var i = 0; i < devices.Length; i++)
             {
-                var start = sizeX * i;
-                var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+                var (start, end) = GetStartAndEnd(i);
                 for (var x = start; x < end; x++)
                 {
                     for (var s = 0; s < 24; s++)
@@ -58,9 +56,6 @@ public static class Vfisv
         {
             Parallel.For(0, devices.Length, i =>
             {
-                var start = sizeX * i;
-                var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
-
                 // ReSharper disable AccessToDisposedClosure
                 using var accelerator = devices[i].CreateAccelerator(context);
                 // ReSharper restore AccessToDisposedClosure
@@ -98,8 +93,7 @@ public static class Vfisv
         {
             for (var i = 0; i < devices.Length; i++)
             {
-                var start = sizeX * i;
-                var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+                var (start, end) = GetStartAndEnd(i);
                 for (var x = start; x < end; x++)
                 {
                     for (var s = 0; s < 4; s++)
@@ -112,5 +106,12 @@ public static class Vfisv
         });
 
         return outputImages;
+
+        (int, int) GetStartAndEnd(int i)
+        {
+            var start = sizeX * i;
+            var end = i == devices.Length - 1 ? GpuKernel.ImgDimX : start + sizeX;
+            return (start, end);
+        }
     }
 }
