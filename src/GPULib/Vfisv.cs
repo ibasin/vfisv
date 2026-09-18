@@ -8,7 +8,6 @@ public static class Vfisv
 {
     public static FloatImage[] ProcessOnGpu(FloatImage[] inputImages, bool forceCpuAccelerator = false)
     {
-        Console.Write("\nLaunching GPU Kernel... ");
         if (inputImages.Length != 24) throw new ArgumentException("Input images array must have exactly 24 elements");
 
         using var context = Context.Create(builder => builder.Default().StaticFields(StaticFieldMode.MutableStaticFields).EnableAlgorithms());
@@ -77,7 +76,6 @@ public static class Vfisv
             }
         });
 
-        Console.WriteLine("Done!");
         return outputImages;
     }
 }
