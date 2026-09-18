@@ -16,11 +16,13 @@ public class Program
         #if DEBUG
         var x = 2000;
         var y = 2000;
+        
         var sum = 0f;
         for (var i = 0; i < 6; i++)
         {
             sum = inputImages[i][x, y];
         }
+        
         const float tolerance = 0.0001f;
         Debug.Assert(Math.Abs(outputImages[0][x,y] - sum) < tolerance);
         Debug.Assert(Math.Abs(outputImages[1][x, y] - sum - 1) < tolerance);
