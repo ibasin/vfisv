@@ -15,10 +15,10 @@ public sealed record FloatImage
     {
         //validations
         //we are hardcoding these just in case since all images are this size, but we can change this later if needed
-        
-        //if (width != 4096) throw new ArgumentOutOfRangeException(nameof(width));
-        //if (height != 4096) throw new ArgumentOutOfRangeException(nameof(height));
-        
+
+        if (width != 4096) throw new ArgumentOutOfRangeException(nameof(width));
+        if (height != 4096) throw new ArgumentOutOfRangeException(nameof(height));
+
         //if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
         //if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
         if (pixels is null) throw new ArgumentNullException(nameof(pixels));
@@ -46,7 +46,6 @@ public sealed record FloatImage
             Pixels[y * Width + x] = value;
         }
     }
-
     #endregion
 
     #region Properties

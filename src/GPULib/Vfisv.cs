@@ -1,4 +1,5 @@
-﻿using ILGPU;
+﻿using FitsLib;
+using ILGPU;
 using ILGPU.Runtime;
 using Utils;
 
@@ -43,7 +44,7 @@ public static class Vfisv
             inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs);
 
             using var outputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 4));
-            outputsMB.MemSetToZero(stream);
+            //outputsMB.MemSetToZero(stream);
 
             //TODO: try 128 and 512 and benchmark performance when kernel is complete
             const int threadsPerBlock = 256;
