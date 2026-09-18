@@ -14,8 +14,8 @@ public static class GpuKernel
         int threadsPerBlock = Group.DimX;
         int globalId = blockId * threadsPerBlock + threadId;
 
-        var x = globalId / ImgDim;
-        var y = globalId % ImgDim;
+        var x = globalId % ImgDimX;
+        var y = globalId / ImgDimX;
 
         //as a test, we copy first 4 input arrays into output arrays
         //for (var s = 0; s < 4; s++)
@@ -72,6 +72,8 @@ public static class GpuKernel
     #endregion
 
     #region Constants
-    public const int ImgDim = 4096; //image is a square of 4096x4096 pixels
+    //image is a square of 4096x4096 pixels
+    public const int ImgDimX = 4096; 
+    public const int ImgDimY = 4096;
     #endregion
 }

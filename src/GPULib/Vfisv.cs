@@ -12,10 +12,10 @@ public static class Vfisv
         if (inputImages.Length != 24) throw new ArgumentException("Input images array must have exactly 24 elements");
 
         //prepare inputs to be copied to GPU memory
-        var inputs = new float[GpuKernel.ImgDim, GpuKernel.ImgDim, 24];
-        Parallel.For(0, GpuKernel.ImgDim, x =>
+        var inputs = new float[GpuKernel.ImgDimX, GpuKernel.ImgDimY, 24];
+        Parallel.For(0, GpuKernel.ImgDimX, x =>
         {
-            for (var y = 0; y < GpuKernel.ImgDim; y++)
+            for (var y = 0; y < GpuKernel.ImgDimY; y++)
             {
                 for (var s = 0; s < 24; s++)
                 {
@@ -24,51 +24,61 @@ public static class Vfisv
             }
         });
 
-        var outputs = new float[GpuKernel.ImgDim, GpuKernel.ImgDim, 4];
+        var outputs = new float[GpuKernel.ImgDimX, GpuKernel.ImgDimY, 4];
 
         using var context = Context.Create(builder => builder.Default().StaticFields(StaticFieldMode.MutableStaticFields).EnableAlgorithms());
-        
+
+
         //Get CUDA devices. If CUDA device does not exist, OpenCL devices, otherwise CPU device
-        var firstDevice =
-            context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.Cuda) ??
-            context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.OpenCL) ??
-            context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
-        if (forceCpuAccelerator) firstDevice = context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
+        //var firstDevice =
+        //    context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.Cuda) ??
+        //    context.Devices.FirstOrDefault(x => x.AcceleratorType == AcceleratorType.OpenCL) ??
+        //    context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
+        //if (forceCpuAccelerator) firstDevice = context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
+
+        var devices = context.Devices.Where(x => x.AcceleratorType == AcceleratorType.Cuda).ToArray();
+        var offsetX = GpuKernel.ImgDimX / devices.Length;
 
         using (new ConsoleTimer("In GPU"))
         {
-            using var accelerator = firstDevice.CreateAccelerator(context);
-            using var stream = accelerator.CreateStream();
+            Parallel.For(0, devices.Length, i =>
+            {
+                // ReSharper disable AccessToDisposedClosure
+                using var accelerator = devices[i].CreateAccelerator(context);
+                // ReSharper restore AccessToDisposedClosure
 
-            using var inputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 24));
-            inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs);
+                using var stream = accelerator.CreateStream();
 
-            using var outputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 4));
-            //outputsMB.MemSetToZero(stream);
+                using var inputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDimX, GpuKernel.ImgDimY, 24));
+                inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs);
 
-            //TODO: try 128 and 512 and benchmark performance when kernel is complete
-            const int threadsPerBlock = 256;
+                using var outputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDimX, GpuKernel.ImgDimY, 4));
+                //outputsMB.MemSetToZero(stream);
 
-            //TODO: figure out if we need to configure SharedMemory here too
-            var launchDimension = new KernelConfig(new Index1D(GpuKernel.ImgDim * GpuKernel.ImgDim / threadsPerBlock), new Index1D(threadsPerBlock));
+                //TODO: try 128 and 512 and benchmark performance when kernel is complete
+                const int threadsPerBlock = 256;
 
-            var kernel = accelerator.LoadKernel<ArrayView3D<float, Stride3D.DenseZY>, ArrayView3D<float, Stride3D.DenseZY>>(GpuKernel.Launch);
+                //TODO: figure out if we need to configure SharedMemory here too
+                var launchDimension = new KernelConfig(new Index1D(GpuKernel.ImgDimX * GpuKernel.ImgDimY / threadsPerBlock), new Index1D(threadsPerBlock));
 
-            kernel(stream, launchDimension, inputsMB.View, outputsMB.View);
-            stream.Synchronize();
+                var kernel = accelerator.LoadKernel<ArrayView3D<float, Stride3D.DenseZY>, ArrayView3D<float, Stride3D.DenseZY>>(GpuKernel.Launch);
 
-            outputsMB.View.AsGeneral().CopyToCPU(stream, outputs);
+                kernel(stream, launchDimension, inputsMB.View, outputsMB.View);
+                stream.Synchronize();
+
+                outputsMB.View.AsGeneral().CopyToCPU(stream, outputs);
+            });
         }
 
         var outputImages = new FloatImage[4];
         for (var s = 0; s < 4; s++)
         {
-            outputImages[s] = new FloatImage(GpuKernel.ImgDim, GpuKernel.ImgDim);
+            outputImages[s] = new FloatImage(GpuKernel.ImgDimX, GpuKernel.ImgDimY);
         }
 
-        Parallel.For(0, GpuKernel.ImgDim, x =>
+        Parallel.For(0, GpuKernel.ImgDimX, x =>
         {
-            for (var y = 0; y < GpuKernel.ImgDim; y++)
+            for (var y = 0; y < GpuKernel.ImgDimY; y++)
             {
                 for (var s = 0; s < 4; s++)
                 {
