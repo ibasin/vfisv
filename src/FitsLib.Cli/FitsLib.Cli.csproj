@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GPULib\GPULib.csproj" />
     <ProjectReference Include="..\FitsLib\FitsLib.csproj" />
+    <ProjectReference Include="..\GPULib\GPULib.csproj" />
   </ItemGroup>
 
 </Project>

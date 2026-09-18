@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using GPULib;
+using System.Globalization;
 
 namespace FitsLib.Cli;
 
@@ -11,12 +12,7 @@ public class Program
 
         var inputImages = await FitsProvider.Load24InputImages("input", time, region);
 
-        //this is fake processing, we just copy 4 first inputs into outputs 
-        var outputImages = new FloatImage[4];
-        outputImages[0] = inputImages[0];
-        outputImages[1] = inputImages[1];
-        outputImages[2] = inputImages[2];
-        outputImages[3] = inputImages[3];
+        var outputImages = Vfisv.Process(inputImages);
 
         var prefix = time.ToString(CultureInfo.InvariantCulture).Replace("/", "-").Replace("\\", "-").Replace(" ", "-").Replace(":", "-");
         await FitsProvider.Save4OutputImages("output", prefix, outputImages);
