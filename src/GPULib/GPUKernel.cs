@@ -1,5 +1,6 @@
 ﻿using ILGPU;
 using ILGPU.Runtime;
+using System.Diagnostics;
 
 namespace GPULib;
 
@@ -53,6 +54,8 @@ public static class GpuKernel
     //returns inclination, azimuth, temperature, pressure for a single pixel
     private static (float, float, float, float) RunSinglePixel(float[] i, float[] q, float[] u, float[] v)
     {
+        Debug.Assert(i.Length == 6 && q.Length == 6 && u.Length == 6 && v.Length == 6);
+        
         //TODO: this is where the actual VFISV algorithm will be implemented. For now, we just return some dummy values based on the input arrays.
         var sum = 0f;
         for (var j = 0; j < 6; j++)
