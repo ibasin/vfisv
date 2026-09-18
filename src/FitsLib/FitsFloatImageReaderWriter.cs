@@ -12,7 +12,12 @@ public static class FitsFloatImageReaderWriter
     #region Read All Images in input Dir
     public static FloatImage[] Read24InputFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
-        Console.WriteLine("\n***** Starting to read all *.fits images into memory *****");
+        Console.Write("\nReading all *.fits images into memory... ");
+
+        //suppress CSharpFITS logging to console, which is very verbose and not useful for this application
+        var consoleOut = Console.Out;
+        Console.SetOut(TextWriter.Null);
+
         ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
         var images = new FloatImage[ExpectedSegmentNames.Length];
 
@@ -25,7 +30,10 @@ public static class FitsFloatImageReaderWriter
             if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
             images[segmentIdx] = image;
         });
-        Console.WriteLine("***** Done reading all *.fits images into memory *****");
+
+        //restore console output to normal
+        Console.SetOut(consoleOut);
+        Console.WriteLine("Done!");
 
         return images;
     }
