@@ -22,7 +22,6 @@ public static class Vfisv
         //if (forceCpuAccelerator) firstDevice = context.Devices.Single(x => x.AcceleratorType == AcceleratorType.CPU);
 
         var devices = context.Devices.Where(x => x.AcceleratorType == AcceleratorType.Cuda).ToArray();
-        var sizeX = GpuKernel.ImgDimX / devices.Length;
 
         //prepare inputs to be copied to GPU memory
         var inputs = new float[devices.Length][,,];
@@ -44,8 +43,7 @@ public static class Vfisv
                 {
                     for (var s = 0; s < 24; s++)
                     {
-                        //if (x == 2000 && y == 2000 && s == 0) Debugger.Break();
-                        inputs[i][x, y, s] = inputImages[s][x, y];
+                        inputs[i][x - start, y, s] = inputImages[s][x, y];
                     }
                 }
             }
@@ -55,22 +53,25 @@ public static class Vfisv
         {
             Parallel.For(0, devices.Length, i =>
             {
+                var (start, end) = GetStartAndEnd(i, devices.Length);
+                var size = end - start;
+
                 // ReSharper disable AccessToDisposedClosure
                 using var accelerator = devices[i].CreateAccelerator(context);
                 // ReSharper restore AccessToDisposedClosure
 
                 using var stream = accelerator.CreateStream();
 
-                using var inputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDimX, GpuKernel.ImgDimY, 24));
+                using var inputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(size, GpuKernel.ImgDimY, 24));
                 inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs[i]);
 
-                using var outputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDimX, GpuKernel.ImgDimY, 4));
+                using var outputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(size, GpuKernel.ImgDimY, 4));
 
                 //TODO: try 128 and 512 and benchmark performance when kernel is complete
                 const int threadsPerBlock = 256;
 
                 //TODO: figure out if we need to configure SharedMemory here too
-                var launchDimension = new KernelConfig(new Index1D(GpuKernel.ImgDimX * GpuKernel.ImgDimY / threadsPerBlock), new Index1D(threadsPerBlock));
+                var launchDimension = new KernelConfig(new Index1D(size * GpuKernel.ImgDimY / threadsPerBlock), new Index1D(threadsPerBlock));
 
                 var kernel = accelerator.LoadKernel<ArrayView3D<float, Stride3D.DenseZY>, ArrayView3D<float, Stride3D.DenseZY>>(GpuKernel.Launch);
 
@@ -97,8 +98,7 @@ public static class Vfisv
                 {
                     for (var s = 0; s < 4; s++)
                     {
-                        //if (x == 2000 && y == 2000 && s == 0) Debugger.Break();
-                        outputImages[s][x, y] = outputs[i][x, y, s];
+                        outputImages[s][x, y] = outputs[i][x - start, y, s];
                     }
                 }
             }
@@ -108,6 +108,7 @@ public static class Vfisv
 
         (int, int) GetStartAndEnd(int i, int numDevices)
         {
+            var sizeX = GpuKernel.ImgDimX / numDevices;
             var start = sizeX * i;
             var end = i == numDevices - 1 ? GpuKernel.ImgDimX : start + sizeX;
             return (start, end);
