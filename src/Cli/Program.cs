@@ -14,7 +14,6 @@ public class Program
         Console.WriteLine(inputImages[0][2000, 2000]);
 
         var outputImages = Vfisv.ProcessOnGpu(inputImages);
-
         Console.WriteLine(outputImages[0][2000, 2000]);
 
         var prefix = time.ToString(CultureInfo.InvariantCulture).Replace("/", "-").Replace("\\", "-").Replace(" ", "-").Replace(":", "-");

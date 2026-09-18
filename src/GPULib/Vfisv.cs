@@ -36,28 +36,29 @@ public static class Vfisv
             }
         });
 
-        //TODO: check if I should use DenseXY or DenseZY
-        using var inputsMB = accelerator.Allocate3DDenseXY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 24));
-        inputsMB.CopyFromCPU(stream, inputs);
-
-        //TODO: check if I should use DenseXY or DenseZY
-        using var outputsMB = accelerator.Allocate3DDenseXY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 4));
-        outputsMB.MemSetToZero(stream);
-
-        //TODO: try 128 and 512 and benchmark performance when kernel is complete
-        const int threadsPerBlock = 256; 
-        
-        //TODO: figure out if we need to configure SharedMemory here too
-        var launchDimension = new KernelConfig(new Index1D(GpuKernel.ImgDim * GpuKernel.ImgDim / threadsPerBlock), new Index1D(threadsPerBlock));
-
-        var kernel = accelerator.LoadKernel<ArrayView3D<float, Stride3D.DenseXY>, ArrayView3D<float,Stride3D.DenseXY>>(GpuKernel.Launch);
-
-        kernel(stream, launchDimension, inputsMB.View, outputsMB.View);
-
-        stream.Synchronize();
-
         var outputs = new float[GpuKernel.ImgDim, GpuKernel.ImgDim, 4];
-        outputsMB.CopyToCPU(stream, outputs);
+
+        using (new ConsoleTimer("In GPU"))
+        {
+            using var inputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 24));
+            inputsMB.View.AsGeneral().CopyFromCPU(stream, inputs);
+
+            using var outputsMB = accelerator.Allocate3DDenseZY<float>(new Index3D(GpuKernel.ImgDim, GpuKernel.ImgDim, 4));
+            outputsMB.MemSetToZero(stream);
+
+            //TODO: try 128 and 512 and benchmark performance when kernel is complete
+            const int threadsPerBlock = 256;
+
+            //TODO: figure out if we need to configure SharedMemory here too
+            var launchDimension = new KernelConfig(new Index1D(GpuKernel.ImgDim * GpuKernel.ImgDim / threadsPerBlock), new Index1D(threadsPerBlock));
+
+            var kernel = accelerator.LoadKernel<ArrayView3D<float, Stride3D.DenseZY>, ArrayView3D<float, Stride3D.DenseZY>>(GpuKernel.Launch);
+
+            kernel(stream, launchDimension, inputsMB.View, outputsMB.View);
+            stream.Synchronize();
+
+            outputsMB.View.AsGeneral().CopyToCPU(stream, outputs);
+        }
 
         var outputImages = new FloatImage[4];
         for (var s = 0; s < 4; s++)
