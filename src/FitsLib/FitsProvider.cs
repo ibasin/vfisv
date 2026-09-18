@@ -6,7 +6,7 @@ namespace FitsLib;
 
 public static class FitsProvider
 {
-    public static async Task<FloatImage[]> Load24InputImages(string inputDir, DateTime time, PixelRegion? region, bool downloadFitsFiles = true)
+    public static async Task<FloatImage[]> Load24InputImages(string inputDir, DateTime time, bool downloadFitsFiles = true)
     {
         var jsonOptions = new JsonSerializerOptions
         {

@@ -18,14 +18,49 @@ public static class GpuKernel
         var y = globalId % ImgDim;
 
         //as a test, we copy first 4 input arrays into output arrays
-        for (var s = 0; s < 4; s++)
+        //for (var s = 0; s < 4; s++)
+        //{
+        //    outputsAV3.SetPixelValue(x, y, s, inputsAV3.GetPixelValue(x, y, s));
+        //}
+
+        //set up arrays for i, q, u, v values for this pixel
+        var i = new float[6];
+        var q = new float[6];
+        var u = new float[6];
+        var v = new float[6];
+
+        //fill arrays with values from input ArrayView for this pixel
+        for (var s = 0; s < 6; s++)
         {
-            outputsAV3.SetPixelValue(x, y, s, inputsAV3.GetPixelValue(x, y, s));
+            i[s] = inputsAV3.GetPixelValue(x, y, s);
+            q[s] = inputsAV3.GetPixelValue(x, y, s + 6);
+            u[s] = inputsAV3.GetPixelValue(x, y, s + 12);
+            v[s] = inputsAV3.GetPixelValue(x, y, s + 18);
         }
+
+        //process a single pixel and get the output values
+        var (iOut, aOut, tOut, pOut) = RunSinglePixel(i, q, u, v);
+
+        //move output values into output ArrayView for this pixel
+        outputsAV3.SetPixelValue(x, y, 0, iOut);
+        outputsAV3.SetPixelValue(x, y, 1, aOut);
+        outputsAV3.SetPixelValue(x, y, 2, tOut);
+        outputsAV3.SetPixelValue(x, y, 3, pOut);
     }
     #endregion
 
     #region Helper Methods
+    //returns inclination, azimuth, temperature, pressure for a single pixel
+    private static (float, float, float, float) RunSinglePixel(float[] i, float[] q, float[] u, float[] v)
+    {
+        //TODO: this is where the actual VFISV algorithm will be implemented. For now, we just return some dummy values based on the input arrays.
+        var sum = 0f;
+        for (var j = 0; j < 6; j++)
+        {
+            sum += i[j] + q[j] + u[j] + v[j];
+        }
+        return (sum, sum + 1, sum + 2, sum + 3);
+    }
     private static float GetPixelValue(this ArrayView3D<float, Stride3D.DenseZY> meAV3, int x, int y, int segmentId)
     {
         return meAV3[new Index3D(x, y, segmentId)];
