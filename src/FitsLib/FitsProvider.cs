@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Utils;
 
 namespace FitsLib;
 
@@ -24,10 +25,11 @@ public static class FitsProvider
 
             await client.DownloadSegmentsAsync(descriptor, inputDir, cancellationToken);
 
-            Console.Write("Saving metadata.json... ");
-            var json = JsonSerializer.Serialize(metadata, jsonOptions);
-            await File.WriteAllTextAsync(Path.Combine(inputDir, "metadata.json"), json, cancellationToken);
-            Console.WriteLine("Done!");
+            using (new ConsoleTimer("Saving metadata.json"))
+            {
+                var json = JsonSerializer.Serialize(metadata, jsonOptions);
+                await File.WriteAllTextAsync(Path.Combine(inputDir, "metadata.json"), json, cancellationToken);
+            }
         }
         else
         {
@@ -41,19 +43,19 @@ public static class FitsProvider
 
     public static Task Save4OutputImages(string outputDir, string prefix, FloatImage[] images)
     {
-        Console.Write("Saving output images... ");
-        
-        if (images.Length != 4) throw new ArgumentException("Expected exactly 4 images.", nameof(images));
-
-        Directory.CreateDirectory(outputDir);
-        var names = new[] { "Inclination", "Azimuth", "Temperature", "Pressure" };
-        Parallel.For(0, images.Length, i =>
+        using (new ConsoleTimer("Saving output images"))
         {
-            var path = Path.Combine(outputDir, $"{prefix}.{names[i]}.fits");
-            FitsFloatImageReaderWriter.Write(path, images[i]);
-        });
-        Console.WriteLine("Done!");
+            if (images.Length != 4) throw new ArgumentException("Expected exactly 4 images.", nameof(images));
 
-        return Task.CompletedTask;
+            Directory.CreateDirectory(outputDir);
+            var names = new[] { "Inclination", "Azimuth", "Temperature", "Pressure" };
+            Parallel.For(0, images.Length, i =>
+            {
+                var path = Path.Combine(outputDir, $"{prefix}.{names[i]}.fits");
+                FitsFloatImageReaderWriter.Write(path, images[i]);
+            });
+
+            return Task.CompletedTask;
+        }
     }
 }

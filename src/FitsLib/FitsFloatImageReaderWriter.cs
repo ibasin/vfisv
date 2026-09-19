@@ -2,6 +2,7 @@ using nom.tam.fits;
 using System.Buffers.Binary;
 using System.Globalization;
 using System.Text;
+using Utils;
 
 namespace FitsLib;
 
@@ -12,30 +13,30 @@ public static class FitsFloatImageReaderWriter
     #region Read All Images in input Dir
     public static FloatImage[] Read24InputFitsImagesInDirectory(string inputDir, HmiObservationMetadata metadata)
     {
-        Console.Write("Reading all *.fits images into memory... ");
-
-        //suppress CSharpFITS logging to console, which is very verbose and not useful for this application
-        var consoleOut = Console.Out;
-        Console.SetOut(TextWriter.Null);
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
-        var images = new FloatImage[ExpectedSegmentNames.Length];
-
-        Parallel.For(0, ExpectedSegmentNames.Length, segmentIdx =>
-        //for (var segmentIdx = 0; segmentIdx < ExpectedSegmentNames.Length; segmentIdx++)
+        using (new ConsoleTimer("Reading all *.fits images into memory"))
         {
-            var path = Path.Combine(inputDir, ExpectedSegmentNames[segmentIdx] + ".fits");
-            if (!File.Exists(path)) throw new FileNotFoundException($"Missing HMI segment {ExpectedSegmentNames[segmentIdx]}.", path);
-            var image = Read(path);
-            if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
-            images[segmentIdx] = image;
-        });
+            //suppress CSharpFITS logging to console, which is very verbose and not useful for this application
+            var consoleOut = Console.Out;
+            Console.SetOut(TextWriter.Null);
 
-        //restore console output to normal
-        Console.SetOut(consoleOut);
-        Console.WriteLine("Done!");
+            ArgumentException.ThrowIfNullOrWhiteSpace(inputDir);
+            var images = new FloatImage[ExpectedSegmentNames.Length];
 
-        return images;
+            Parallel.For(0, ExpectedSegmentNames.Length, segmentIdx =>
+                //for (var segmentIdx = 0; segmentIdx < ExpectedSegmentNames.Length; segmentIdx++)
+            {
+                var path = Path.Combine(inputDir, ExpectedSegmentNames[segmentIdx] + ".fits");
+                if (!File.Exists(path)) throw new FileNotFoundException($"Missing HMI segment {ExpectedSegmentNames[segmentIdx]}.", path);
+                var image = Read(path);
+                if (image.Width != metadata.Width || image.Height != metadata.Height) throw new InvalidDataException($"{Path.GetFileName(path)} is {image.Width}x{image.Height}; expected {metadata.Width}x{metadata.Height}.");
+                images[segmentIdx] = image;
+            });
+
+            //restore console output to normal
+            Console.SetOut(consoleOut);
+
+            return images;
+        }
     }
     private static readonly string[] ExpectedSegmentNames =
     [

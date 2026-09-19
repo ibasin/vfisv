@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using Utils;
 
 namespace FitsLib;
 
@@ -56,16 +57,17 @@ public sealed class JsocClient(HttpClient httpClient)
     {
         Directory.CreateDirectory(directory);
 
-        Console.Write("Downloading all *.fits files... ");
-        await Parallel.ForEachAsync(descriptor.Segments, cancellationToken, async (segment, ct) =>
+        using (new ConsoleTimer("Downloading all *.fits files"))
         {
-            var name = segment.Key; 
-            var uri = segment.Value;
-            await using var input = await _httpClient.GetStreamAsync(uri, ct);
-            await using var output = File.Create(Path.Combine(directory, name + ".fits"));
-            await input.CopyToAsync(output, ct);
-        });
-        Console.WriteLine("Done!");
+            await Parallel.ForEachAsync(descriptor.Segments, cancellationToken, async (segment, ct) =>
+            {
+                var name = segment.Key;
+                var uri = segment.Value;
+                await using var input = await _httpClient.GetStreamAsync(uri, ct);
+                await using var output = File.Create(Path.Combine(directory, name + ".fits"));
+                await input.CopyToAsync(output, ct);
+            });
+        }
     }
 }
 

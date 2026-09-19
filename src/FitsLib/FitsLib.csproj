@@ -10,5 +10,8 @@
 		<!-- CSharpFITS predates modern TFMs but its managed assembly runs on .NET 8. -->
 		<PackageReference Include="CSharpFITS" Version="1.1.0" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Utils\Utils.csproj" />
+	</ItemGroup>
 
 </Project>
